@@ -1,0 +1,28 @@
+// PowerShell to Process Creation Correlation
+// Finds the most recent suspicious PowerShell Script Block event
+// and returns nearby Windows process creation events.
+//
+// This helps correlate Event ID 4104 with Event ID 4688.
+
+let SuspiciousTime =
+    toscalar(
+        Event
+        | where Computer == "win-siem-01"
+        | where EventID == 4104
+        | where RenderedDescription contains "SUSPICIOUS-SIEM-TEST"
+        | top 1 by TimeGenerated desc
+        | project TimeGenerated
+    );
+
+Event
+| where Computer == "win-siem-01"
+| where EventID == 4688
+| where TimeGenerated between ((SuspiciousTime - 2m) .. (SuspiciousTime + 2m))
+| extend NewProcessName =
+    extract(@"New Process Name:\s+([^\s]+)", 1, RenderedDescription)
+| extend CreatorProcessName =
+    extract(@"Creator Process Name:\s+([^\s]+)", 1, RenderedDescription)
+| extend CommandLine =
+    extract(@"Process Command Line:\s+(.+?)(?:Token Elevation Type:|$)", 1, RenderedDescription)
+| project TimeGenerated, NewProcessName, CreatorProcessName, CommandLine
+| sort by TimeGenerated asc
