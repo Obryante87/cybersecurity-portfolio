@@ -44,7 +44,7 @@ Key work completed:
 - Reconstructed parent/child process execution chains
 - Created a scheduled Microsoft Sentinel analytics rule
 - Generated and validated alerts in Microsoft Defender XDR
-- Confirmed incident creation through the `SecurityIncident` table
+- Validated incident creation and status using the `SecurityIncident` table
 - Documented investigation evidence with screenshots and reusable KQL queries
 
 **[View the Microsoft Sentinel SIEM Detection Engineering Lab](siem-detection-engineering/)**
