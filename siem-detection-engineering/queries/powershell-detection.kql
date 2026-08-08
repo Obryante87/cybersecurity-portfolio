@@ -1,0 +1,9 @@
+// Suspicious PowerShell Activity
+// Detects the controlled SIEM lab test string in PowerShell
+// Script Block Logging (Event ID 4104).
+
+Event
+| where EventID == 4104
+| where RenderedDescription contains "SUSPICIOUS-SIEM-TEST"
+| project TimeGenerated, Computer, EventID, RenderedDescription
+| sort by TimeGenerated desc
