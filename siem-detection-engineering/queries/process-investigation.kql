@@ -1,0 +1,28 @@
+// Windows Process Investigation
+// Uses Event ID 4688 to investigate processes associated
+// with a suspicious PowerShell execution.
+//
+// Replace the Logon ID below with the session being investigated.
+
+Event
+| where Computer == "win-siem-01"
+| where EventID == 4688
+| where RenderedDescription contains "0x787ED"
+| where RenderedDescription has_any (
+    "cmd.exe",
+    "powershell.exe",
+    "whoami.exe",
+    "notepad.exe",
+    "certutil.exe",
+    "mshta.exe",
+    "rundll32.exe",
+    "regsvr32.exe"
+)
+| extend NewProcessName =
+    extract(@"New Process Name:\s+([^\s]+)", 1, RenderedDescription)
+| extend CreatorProcessName =
+    extract(@"Creator Process Name:\s+([^\s]+)", 1, RenderedDescription)
+| extend CommandLine =
+    extract(@"Process Command Line:\s+(.+?)(?:Token Elevation Type:|$)", 1, RenderedDescription)
+| project TimeGenerated, NewProcessName, CreatorProcessName, CommandLine
+| sort by TimeGenerated asc
