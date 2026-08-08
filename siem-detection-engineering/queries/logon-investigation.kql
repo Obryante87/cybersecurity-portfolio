@@ -1,0 +1,20 @@
+// Windows Logon Investigation
+// Reviews successful logons on a monitored endpoint using
+// Windows Security Event ID 4624.
+//
+// Useful for identifying the user, logon type, source address,
+// and Logon ID associated with suspicious activity.
+
+Event
+| where Computer == "win-siem-01"
+| where EventID == 4624
+| extend AccountName =
+    extract(@"New Logon:.*?Account Name:\s+([^\s]+)", 1, RenderedDescription)
+| extend LogonType =
+    extract(@"Logon Type:\s+(\d+)", 1, RenderedDescription)
+| extend LogonID =
+    extract(@"New Logon:.*?Logon ID:\s+(0x[0-9A-Fa-f]+)", 1, RenderedDescription)
+| extend SourceIPAddress =
+    extract(@"Source Network Address:\s+([^\s]+)", 1, RenderedDescription)
+| project TimeGenerated, Computer, AccountName, LogonType, LogonID, SourceIPAddress
+| sort by TimeGenerated desc
